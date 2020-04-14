@@ -10,7 +10,7 @@ import java.util.List;
 
 import static io.restassured.RestAssured.*;
 
-public class Jsonplchldr extends Rsa {
+public class Jsonplchldr {
 
     private int postNumber;
     RequestSpecification request;

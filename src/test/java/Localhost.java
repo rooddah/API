@@ -37,7 +37,7 @@ public class Localhost {
 
     @Test
     public void tc02_multiply_and_sumAll() {
-        int expectedSum = 123;
+        int expectedSum = 123; //hardcoded value, therefore there might be fails due to db.json dynamically change. This test is to show logic, not *exact* assertion
         String response = given().log().all()
                 .when().get("comments")
                 .then().assertThat().statusCode(200).extract().asString();
@@ -53,7 +53,7 @@ public class Localhost {
             sum += mult;
         }
         System.out.println(sum);
-        Assert.assertEquals(sum, expectedSum);
+        Assert.assertEquals(sum, expectedSum, "Numbers do not match");
     }
 
     @Test(dataProvider = "body")
@@ -67,7 +67,6 @@ public class Localhost {
 
     @Test
     public void tc04_post_update_check_2() {
-        RestAssured.baseURI = "http://localhost:3000";
         String expBody = "Make America fast again";
 
         String response = given().log().all().contentType(ContentType.JSON)
