@@ -5,10 +5,14 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import static io.restassured.RestAssured.given;
 
-public class Localhost {
+public class JsonServerLocalTests {
 
     @BeforeTest
     public void setUp() {
@@ -93,9 +97,43 @@ public class Localhost {
         Assert.assertEquals(actBody, expBody);
     }
 
+    @Test
+    public void tc05_loadingPostFromFile() throws IOException {
+        String response = given().log().all()
+                .when().get("comments")
+                .then().assertThat().statusCode(200).extract().asString();
+
+        JsonPath js = new JsonPath(response);
+        int initialNumOfComments = js.getInt("size()");
+        System.out.println("There are " + initialNumOfComments + " comments before the update");
+
+        String response2 = given().log().all().contentType(ContentType.JSON)
+                .body(generateStrFromRsrc("D:\\automation\\resources\\json\\commentsJson.json"))
+                .when().post("comments")
+                .then().log().all().assertThat().statusCode(201).extract().response().asString();
+
+        JsonPath js2 = new JsonPath(response2);
+        int numOfNewComments = js2.getInt("size");
+        System.out.println(numOfNewComments + " new comments were added");
+
+        String response3 = given().log().all()
+                .when().get("comments")
+                .then().assertThat().statusCode(200).extract().asString();
+
+        JsonPath js3 = new JsonPath(response3);
+        int finalNumOfComments = js3.getInt("size()");
+        System.out.println("So the final number of comments is now " + finalNumOfComments);
+        int desiredSum = initialNumOfComments + numOfNewComments;
+        Assert.assertEquals(finalNumOfComments, desiredSum);
+    }
+
     @DataProvider(name = "body")
     public Object[][] getBody() {
         return new Object[][]{{"Jeff Bridges", "jb@film.pl", "Body example", 33},
                 {"Will Smith", "ws@domain.com", "I am an actor and a musician", 34}, {"Ala Nowak", "ala@nowak.com", "c-body", 35}};
+    }
+
+    public static String generateStrFromRsrc(String path) throws IOException {
+        return new String(Files.readAllBytes(Paths.get(path)));
     }
 }

@@ -1,8 +1,9 @@
 import java.util.Random;
 
 public class PayloadLocal {
+
     public static String addComment() {
-        return addComment(null, null, null, 0);
+                return addComment(null, null, null, 0);
     }
 
     public static String addComment(String name, String email, String body, int postId) {
