@@ -19,18 +19,13 @@ public class JIRATests {
      */
 
     public String issueKey;
+    public String defaultKey = "TP-24";
+    public SessionFilter session;
 
     @BeforeTest
     public void setUp() {
         RestAssured.baseURI = "http://localhost:8080";
-    }
-
-    @Test
-    public void tc01_create_an_issue() {
-        String key = "TP";
-        String summary = "[Bug] some lonely bug";
-        String description = "description";
-        SessionFilter session = new SessionFilter();
+        session = new SessionFilter();
 
         given().log().all().contentType(ContentType.JSON)
                 .body("{\n" +
@@ -40,7 +35,16 @@ public class JIRATests {
                 .filter(session)
                 .when().post("/rest/auth/1/session")
                 .then().log().all().assertThat().statusCode(200).extract().response().asString();
+        if (issueKey == null) {
+            issueKey = defaultKey;
+        }
+    }
 
+    @Test
+    public void tc01_create_an_issue() {
+        String key = "TP";
+        String summary = "[Bug] some lonely bug";
+        String description = "description";
 
         String response = given().log().all().contentType(ContentType.JSON)
                 .body(PayloadJIRA.addIssue(key, summary, description))
@@ -57,22 +61,6 @@ public class JIRATests {
     @Test
     public void tc02_add_comment_to_task() {
         String comment = "Some random comment";
-        String defaultKey = "TP-24";
-        SessionFilter session = new SessionFilter();
-
-        given().log().all().contentType(ContentType.JSON)
-                .body("{\n" +
-                        "    \"username\": \"rooddah\",\n" +
-                        "    \"password\": \"jira123\"\n" +
-                        "}")
-                .filter(session)
-                .when().post("/rest/auth/1/session")
-                .then().log().all().assertThat().statusCode(200).extract().response().asString();
-
-        if (issueKey == null) {
-            issueKey = defaultKey;
-        }
-
         given().pathParam("key", issueKey).log().all().contentType(ContentType.JSON)
                 .body(PayloadJIRA.addComment(comment))
                 .filter(session)
@@ -87,16 +75,6 @@ public class JIRATests {
     public void tc03_delete_issues_1_to_10() {
         //  Values '1-10' are hardcoded to remove only those particular items. It is only to ease my work (when created multiple items and want to get rid of them) + to show code logic.
         //  This test cannot work on its own (my bad, I know [sic!]) when there are no 'TP-1 - TP-10' available. To be continued...
-        SessionFilter session = new SessionFilter();
-
-        given().log().all().contentType(ContentType.JSON)
-                .body("{\n" +
-                        "    \"username\": \"rooddah\",\n" +
-                        "    \"password\": \"jira123\"\n" +
-                        "}")
-                .filter(session)
-                .when().post("/rest/auth/1/session")
-                .then().log().all().assertThat().statusCode(200).extract().response().asString();
 
         String keyStr;
         List<String> list = new ArrayList<>();
@@ -117,26 +95,21 @@ public class JIRATests {
 
     @Test
     public void tc04_add_attachment() {
-        String defaultKey = "TP-24";
-        SessionFilter session = new SessionFilter();
-
-        given().log().all().contentType(ContentType.JSON)
-                .body("{\n" +
-                        "    \"username\": \"rooddah\",\n" +
-                        "    \"password\": \"jira123\"\n" +
-                        "}")
-                .filter(session)
-                .when().post("/rest/auth/1/session")
-                .then().log().all().assertThat().statusCode(200).extract().response().asString();
-
-        if (issueKey == null) {
-            issueKey = defaultKey;
-        }
-        given().pathParam("key", issueKey).log().all().header("X-Atlassian-Token", "no-check")
+        given().pathParam("key", issueKey).log().all().header("X-Atlassian-Token", "no-check").header("Content-Type", "multipart/form-data")
                 .multiPart("file", new File( "D:/automation/resources/myfile.txt"))
                 .formParam("description", "This is my txt attachment")
                 .filter(session)
                 .when().post("/rest/api/2/issue/{key}/attachments")
                 .then().log().all().assertThat().statusCode(200);
+    }
+
+    @Test
+    public void tc05_get_issue() {
+        String issueDetails = given().pathParam("key", issueKey).log().all()
+                .queryParam("fields", "summary, creator, priority, status")
+                .filter(session)
+                .when().get("/rest/api/2/issue/{key}")
+                .then().log().all().assertThat().statusCode(200).extract().response().asString();
+
     }
 }
