@@ -8,7 +8,6 @@ import pojoObj.RSA.Courses.Api;
 import pojoObj.RSA.RsaGetCourse;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -16,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.given;
 
-public class OathTest extends BaseTest {
+public class OathTest {
     @Test
     public void tc01_get_courses() throws InterruptedException, IOException {
         Properties prop = new Properties();
