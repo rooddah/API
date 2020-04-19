@@ -105,7 +105,7 @@ public class JIRATests {
 
     @Test
     public void tc05_get_issue() {
-        String issueDetails = given().pathParam("key", issueKey).log().all()
+           given().pathParam("key", issueKey).log().all()
                 .queryParam("fields", "summary, creator, priority, status")
                 .filter(session)
                 .when().get("/rest/api/2/issue/{key}")

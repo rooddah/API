@@ -125,6 +125,8 @@ public class JsonServerLocalTests {
         System.out.println("So the final number of comments is now " + finalNumOfComments);
         int desiredSum = initialNumOfComments + numOfNewComments;
         Assert.assertEquals(finalNumOfComments, desiredSum);
+
+        System.out.println(response3);
     }
 
     @DataProvider(name = "body")

@@ -1,6 +1,8 @@
 import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
+import io.restassured.specification.RequestSpecification;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -9,15 +11,22 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 public class Rsa {
+    RequestSpecification req;
 
     @BeforeTest
     public void setUp() {
-        RestAssured.baseURI = "https://rahulshettyacademy.com";
+
+        String url = "https://rahulshettyacademy.com";
+        req = new RequestSpecBuilder()
+                .setBaseUri(url)
+                .addQueryParam("key", "qaclick123")
+                .setContentType(ContentType.JSON)
+                .build();
     }
 
     @Test
     public void tc01_post_new_entry() {
-        given().log().all().queryParam("key", "qaclick123").contentType(ContentType.JSON)
+        given().spec(req)
                 .body(PayloadRSA.addPlace())
                 .when().post("maps/api/place/add/json")
                 .then().assertThat().statusCode(200);
@@ -26,7 +35,7 @@ public class Rsa {
     @Test
     public void tc02_post_update_and_check_place() {
         String newAddress = "Even newer address, USA";
-        String response = given().log().all().queryParam("key", "qaclick123").contentType(ContentType.JSON)
+        String response = given().log().all().spec(req)
                 .body(PayloadRSA.addPlace())
                 .when().post("maps/api/place/add/json")
                 .then().assertThat().statusCode(200).body("scope", equalTo("APP")).extract().response().asString();
@@ -36,7 +45,7 @@ public class Rsa {
         System.out.println("Place ID is: " + placeId);
 
         //update the place
-        given().log().all().queryParam("key", "qaclick123").header("Content-Type", "application/json")
+        given().log().all().spec(req)
                 .body("{\n" +
                         "\"place_id\":\"" + placeId + "\",\n" +
                         "\"address\":\"" + newAddress + "\",\n" +
@@ -46,7 +55,7 @@ public class Rsa {
                 .then().assertThat().log().all().statusCode(200).body("msg", equalTo("Address successfully updated"));
 
         //checking the place
-        String getPlaceResponse = given().log().all().queryParam("key", "qaclick123").queryParam("place_id", placeId)
+        String getPlaceResponse = given().log().all().spec(req).queryParam("place_id", placeId)
                 .when().get("maps/api/place/get/json")
                 .then().assertThat().log().all().statusCode(200).extract().response().asString();
 
